@@ -1,14 +1,16 @@
 package zendesk
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"regexp"
-	"strings"
+	"strconv"
+	"time"
 
 	"github.com/google/go-querystring/query"
 )
@@ -31,6 +33,8 @@ type (
 		httpClient *http.Client
 		credential Credential
 		headers    map[string]string
+		maxSleep   time.Duration
+		maxRetry   int
 	}
 
 	// BaseAPI encapsulates base methods for zendesk client
@@ -75,7 +79,11 @@ func NewClient(httpClient *http.Client) (*Client, error) {
 		httpClient = http.DefaultClient
 	}
 
-	client := &Client{httpClient: httpClient}
+	client := &Client{
+		httpClient: httpClient,
+		maxSleep:   5 * time.Second,
+		maxRetry:   3,
+	}
 	client.headers = defaultHeaders
 	return client, nil
 }
@@ -120,134 +128,91 @@ func (z *Client) SetCredential(cred Credential) {
 	z.credential = cred
 }
 
-// get get JSON data from API and returns its body as []bytes
+// SetMaxRetrySleepDelay sets the maximum duration that a client will support sleeping
+// if an API call returns a 429 error. Defaults to 5 seconds if not set.
+func (z *Client) SetMaxRetrySleepDelay(duration time.Duration) {
+	z.maxSleep = duration
+}
+
+// SetMaxRetry sets the maximum duration that a client will support sleeping
+// if an API call returns a 429 error. Defaults to 3 if not set.
+func (z *Client) SetMaxRetry(retries int) {
+	if retries > 0 {
+		z.maxRetry = retries
+	}
+}
+
+// get fetches JSON data from API and returns its body as []bytes
 func (z *Client) get(ctx context.Context, path string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodGet, z.baseURL.String()+path, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req = z.prepareRequest(ctx, req)
-
-	resp, err := z.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, Error{
-			body: body,
-			resp: resp,
-		}
-	}
-	return body, nil
+	return z.execRequest(ctx, path, http.MethodGet, nil, []int{http.StatusOK})
 }
 
 // post send data to API and returns response body as []bytes
 func (z *Client) post(ctx context.Context, path string, data interface{}) ([]byte, error) {
-	bytes, err := json.Marshal(data)
+	jsonBytes, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
-
-	req, err := http.NewRequest(http.MethodPost, z.baseURL.String()+path, strings.NewReader(string(bytes)))
-	if err != nil {
-		return nil, err
-	}
-
-	req = z.prepareRequest(ctx, req)
-
-	resp, err := z.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if !(resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated) {
-		return nil, Error{
-			body: body,
-			resp: resp,
-		}
-	}
-
-	return body, nil
+	return z.execRequest(ctx, path, http.MethodPost, bytes.NewReader(jsonBytes), []int{http.StatusOK, http.StatusCreated})
 }
 
 // put sends data to API and returns response body as []bytes
 func (z *Client) put(ctx context.Context, path string, data interface{}) ([]byte, error) {
-	bytes, err := json.Marshal(data)
+	jsonBytes, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
-
-	req, err := http.NewRequest(http.MethodPut, z.baseURL.String()+path, strings.NewReader(string(bytes)))
-	if err != nil {
-		return nil, err
-	}
-
-	req = z.prepareRequest(ctx, req)
-
-	resp, err := z.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	// NOTE: some webhook mutation APIs return status No Content.
-	if !(resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent) {
-		return nil, Error{
-			body: body,
-			resp: resp,
-		}
-	}
-
-	return body, nil
+	return z.execRequest(ctx, path, http.MethodPut, bytes.NewReader(jsonBytes), []int{http.StatusOK, http.StatusNoContent})
 }
 
 // delete sends data to API and returns an error if unsuccessful
 func (z *Client) delete(ctx context.Context, path string) error {
-	req, err := http.NewRequest(http.MethodDelete, z.baseURL.String()+path, nil)
-	if err != nil {
-		return err
+	_, err := z.execRequest(ctx, path, http.MethodDelete, nil, []int{http.StatusNoContent})
+	return err
+}
+
+func (z *Client) execRequest(ctx context.Context, path string, verb string, reqBody io.Reader, successCodes []int) ([]byte, error) {
+	var resp *http.Response
+	var body []byte
+	for attempts := 0; attempts < z.maxRetry; attempts++ {
+		req, err := http.NewRequest(verb, z.baseURL.String()+path, reqBody)
+		if err != nil {
+			return nil, err
+		}
+
+		req = z.prepareRequest(ctx, req)
+		resp, err = z.httpClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+
+		body, err = io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		if resp.StatusCode == http.StatusTooManyRequests && attempts < z.maxRetry {
+			retryStr := resp.Header.Get("Retry-After")
+			retrySec, _ := strconv.Atoi(retryStr)
+			if retrySec > 0 && time.Duration(retrySec) <= z.maxSleep {
+				time.Sleep(time.Duration(retrySec) * time.Second)
+				continue
+			}
+		}
+		break
 	}
 
-	req = z.prepareRequest(ctx, req)
-
-	resp, err := z.httpClient.Do(req)
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode != http.StatusNoContent {
-		return Error{
-			body: body,
-			resp: resp,
+	for _, code := range successCodes {
+		if resp.StatusCode == code {
+			return body, nil
 		}
 	}
 
-	return nil
+	return nil, Error{
+		body: body,
+		resp: resp,
+	}
 }
 
 // prepare request sets common request variables such as authn and user agent
@@ -273,7 +238,7 @@ func (z *Client) includeHeaders(req *http.Request) {
 }
 
 // addOptions build query string
-func addOptions(s string, opts interface{}) (string, error) {
+func addOptions(s string, opts any) (string, error) {
 	u, err := url.Parse(s)
 	if err != nil {
 		return s, err

@@ -32,7 +32,7 @@ func TestListAppInstallations(t *testing.T) {
 			},
 			SettingsObjects: []struct {
 				Name  string `json:"name"`
-				Value string `json:"value"`
+				Value any    `json:"value"`
 			}{
 				{
 					Name:  "setting-one",
@@ -61,7 +61,7 @@ func TestListAppInstallations(t *testing.T) {
 			},
 			SettingsObjects: []struct {
 				Name  string `json:"name"`
-				Value string `json:"value"`
+				Value any    `json:"value"`
 			}{
 				{
 					Name:  "foo",
