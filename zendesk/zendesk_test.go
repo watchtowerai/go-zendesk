@@ -2,7 +2,7 @@ package zendesk
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -23,7 +23,7 @@ func fixture(filename string) string {
 }
 
 func readFixture(filename string) []byte {
-	bytes, err := ioutil.ReadFile(fixture(filename))
+	bytes, err := os.ReadFile(fixture(filename))
 	if err != nil {
 		fmt.Printf("Failed to read fixture. Check the path: %s", err)
 		os.Exit(1)
@@ -48,8 +48,9 @@ func newTestClient(mockAPI *httptest.Server) *Client {
 	c := &Client{
 		httpClient: http.DefaultClient,
 		credential: NewAPITokenCredential("", ""),
+		maxRetry:   1,
 	}
-	c.SetEndpointURL(mockAPI.URL)
+	_ = c.SetEndpointURL(mockAPI.URL)
 	return c
 }
 
@@ -172,7 +173,7 @@ func TestGetFailureCanReadErrorBody(t *testing.T) {
 	}
 
 	body := clientErr.Body()
-	_, err = ioutil.ReadAll(body)
+	_, err = io.ReadAll(body)
 	if err != nil {
 		t.Fatal("Client received error while reading client body")
 	}
