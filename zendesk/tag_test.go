@@ -33,7 +33,7 @@ func TestListTags(t *testing.T) {
 
 	expectedLength := 2
 	if len(tags) != expectedLength {
-		t.Fatalf("Returned tags does not have the expexted length %d. Tags length is %d", expectedLength, len(tags))
+		t.Fatalf("Returned tags does not have the expected length %d. Tags length is %d", expectedLength, len(tags))
 	}
 }
 
@@ -49,7 +49,7 @@ func TestSearchTags(t *testing.T) {
 
 	expectedLength := 2
 	if len(tags) != expectedLength {
-		t.Fatalf("Returned tags does not have the expexted length %d. Tags length is %d", expectedLength, len(tags))
+		t.Fatalf("Returned tags does not have the expected length %d. Tags length is %d", expectedLength, len(tags))
 	}
 }
 
