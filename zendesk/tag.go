@@ -17,6 +17,8 @@ type TagAPI interface {
 	AddTicketTags(ctx context.Context, ticketID int64, tags []Tag) ([]Tag, error)
 	AddOrganizationTags(ctx context.Context, organizationID int64, tags []Tag) ([]Tag, error)
 	AddUserTags(ctx context.Context, userID int64, tags []Tag) ([]Tag, error)
+	ListTags(ctx context.Context, options TagListOptions) ([]Tag, Page, error)
+	SearchTags(ctx context.Context, options SearchTagsOptions) ([]Tag, Page, error)
 }
 
 // GetTicketTags get ticket tag list
@@ -38,6 +40,76 @@ func (z *Client) GetTicketTags(ctx context.Context, ticketID int64) ([]Tag, erro
 	}
 
 	return result.Tags, err
+}
+
+type TagListOptions struct {
+	PageOptions
+}
+
+// ListTags gets list of available tags
+//
+// ref: https://developer.zendesk.com/api-reference/ticketing/ticket-management/tags/#list-tags
+func (z *Client) ListTags(ctx context.Context, options TagListOptions) ([]Tag, Page, error) {
+	var result struct {
+		Page
+		Tags []struct {
+			Name  string `json:"name"`
+			Count int64  `json:"count"`
+		} `json:"tags"`
+	}
+
+	u, err := addOptions("/tags.json", options)
+	if err != nil {
+		return nil, Page{}, err
+	}
+
+	body, err := z.get(ctx, u)
+	if err != nil {
+		return nil, Page{}, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, Page{}, err
+	}
+
+	var tags []Tag
+	for _, t := range result.Tags {
+		tags = append(tags, Tag(t.Name))
+	}
+
+	return tags, result.Page, nil
+}
+
+type SearchTagsOptions struct {
+	PageOptions
+	Query string `url:"name,omitempty"`
+}
+
+// SearchTags searches tags by name
+//
+// ref: https://developer.zendesk.com/api-reference/ticketing/ticket-management/tags/#search-tags
+func (z *Client) SearchTags(ctx context.Context, options SearchTagsOptions) ([]Tag, Page, error) {
+	var result struct {
+		Page
+		Tags []Tag `json:"tags"`
+	}
+	u, err := addOptions("/autocomplete/tags.json", options)
+	if err != nil {
+		return nil, Page{}, err
+	}
+
+	body, err := z.get(ctx, u)
+	if err != nil {
+		return nil, Page{}, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, Page{}, err
+	}
+
+	return result.Tags, result.Page, nil
 }
 
 // GetOrganizationTags get organization tag list
