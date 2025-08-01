@@ -14,7 +14,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Run tests with coverage report output
-        run: go test -short -coverprofile=coverage.out
+        run: go test -v -coverprofile=coverage.out ./...
         env:
           GO_ENV: "test"
           GOPRIVATE: "github.com/watchtowerai"
