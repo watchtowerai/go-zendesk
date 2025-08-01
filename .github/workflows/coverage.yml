@@ -1,0 +1,21 @@
+name: octocov
+on:
+  pull_request:
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Granting private modules access
+        run: |
+          git config --global url."https://${{ secrets.engbot_token }}:x-oauth-basic@github.com/watchtowerai".insteadOf "https://github.com/watchtowerai"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+      - name: Run tests with coverage report output
+        run: go test -short -coverprofile=coverage.out
+        env:
+          GO_ENV: "test"
+          GOPRIVATE: "github.com/watchtowerai"
+      - uses: k1LoW/octocov-action@v0
