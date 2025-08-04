@@ -83,7 +83,7 @@ func (z *Client) ListTags(ctx context.Context, options TagListOptions) ([]Tag, P
 
 type SearchTagsOptions struct {
 	PageOptions
-	Query string `url:"name,omitempty"`
+	Name string `url:"name,omitempty"`
 }
 
 // SearchTags searches tags by name

@@ -42,7 +42,7 @@ func TestSearchTags(t *testing.T) {
 	client := newTestClient(mockAPI)
 	defer mockAPI.Close()
 
-	tags, _, err := client.SearchTags(ctx, SearchTagsOptions{Query: "example"})
+	tags, _, err := client.SearchTags(ctx, SearchTagsOptions{Name: "example"})
 	if err != nil {
 		t.Fatalf("Failed to search tags: %s", err)
 	}
