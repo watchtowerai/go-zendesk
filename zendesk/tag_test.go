@@ -21,6 +21,38 @@ func TestGetTicketTags(t *testing.T) {
 	}
 }
 
+func TestListTags(t *testing.T) {
+	mockAPI := newMockAPI(http.MethodGet, "list-tags.json")
+	client := newTestClient(mockAPI)
+	defer mockAPI.Close()
+
+	tags, _, err := client.ListTags(ctx, TagListOptions{})
+	if err != nil {
+		t.Fatalf("Failed to list tags: %s", err)
+	}
+
+	expectedLength := 2
+	if len(tags) != expectedLength {
+		t.Fatalf("Returned tags does not have the expected length %d. Tags length is %d", expectedLength, len(tags))
+	}
+}
+
+func TestSearchTags(t *testing.T) {
+	mockAPI := newMockAPI(http.MethodGet, "search-tags.json")
+	client := newTestClient(mockAPI)
+	defer mockAPI.Close()
+
+	tags, _, err := client.SearchTags(ctx, SearchTagsOptions{Name: "example"})
+	if err != nil {
+		t.Fatalf("Failed to search tags: %s", err)
+	}
+
+	expectedLength := 2
+	if len(tags) != expectedLength {
+		t.Fatalf("Returned tags does not have the expected length %d. Tags length is %d", expectedLength, len(tags))
+	}
+}
+
 func TestGetOrganizationTags(t *testing.T) {
 	mockAPI := newMockAPI(http.MethodGet, "tags.json")
 	client := newTestClient(mockAPI)

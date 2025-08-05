@@ -1,0 +1,43 @@
+name: reviewdog
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  golangci-lint:
+    if: github.event_name == 'pull_request'
+    name: runner / golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Granting private modules access
+        run: |
+          git config --global url."https://${{ secrets.engbot_token }}:x-oauth-basic@github.com/watchtowerai".insteadOf "https://github.com/watchtowerai"
+      - uses: reviewdog/action-golangci-lint@v2.2
+        with:
+          github_token: ${{ secrets.github_token }}
+          level: "warning"
+          reporter: github-pr-check
+          golangci_lint_flags: "--tests=false"
+        env:
+          GOPRIVATE: "github.com/watchtowerai"
+
+  staticcheck:
+    if: github.event_name == 'pull_request'
+    name: runner / staticcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Granting private modules access
+        run: |
+          git config --global url."https://${{ secrets.engbot_token }}:x-oauth-basic@github.com/watchtowerai".insteadOf "https://github.com/watchtowerai"
+      - uses: reviewdog/action-staticcheck@v1.12
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-check
+          fail_on_error: true
+          staticcheck_flags: "-tests=false"
+        env:
+          GOPRIVATE: "github.com/watchtowerai"

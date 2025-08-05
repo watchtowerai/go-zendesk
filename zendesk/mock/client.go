@@ -1285,6 +1285,22 @@ func (mr *ClientMockRecorder) ListInstallations(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListInstallations", reflect.TypeOf((*Client)(nil).ListInstallations), arg0)
 }
 
+// ListTags mocks base method.
+func (m *Client) ListTags(arg0 context.Context, arg1 zendesk.TagListOptions) ([]zendesk.Tag, zendesk.Page, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListTags", arg0, arg1)
+	ret0, _ := ret[0].([]zendesk.Tag)
+	ret1, _ := ret[1].(zendesk.Page)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// ListTags indicates an expected call of ListTags.
+func (mr *ClientMockRecorder) ListTags(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTags", reflect.TypeOf((*Client)(nil).ListTags), arg0, arg1)
+}
+
 // ListTicketComments mocks base method.
 func (m *Client) ListTicketComments(arg0 context.Context, arg1 int64, arg2 *zendesk.ListTicketCommentsOptions) (*zendesk.ListTicketCommentsResult, error) {
 	m.ctrl.T.Helper()
@@ -1388,6 +1404,22 @@ func (m *Client) SearchCount(arg0 context.Context, arg1 *zendesk.CountOptions) (
 func (mr *ClientMockRecorder) SearchCount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchCount", reflect.TypeOf((*Client)(nil).SearchCount), arg0, arg1)
+}
+
+// SearchTags mocks base method.
+func (m *Client) SearchTags(arg0 context.Context, arg1 zendesk.SearchTagsOptions) ([]zendesk.Tag, zendesk.Page, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchTags", arg0, arg1)
+	ret0, _ := ret[0].([]zendesk.Tag)
+	ret1, _ := ret[1].(zendesk.Page)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// SearchTags indicates an expected call of SearchTags.
+func (mr *ClientMockRecorder) SearchTags(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchTags", reflect.TypeOf((*Client)(nil).SearchTags), arg0, arg1)
 }
 
 // SearchUsers mocks base method.
