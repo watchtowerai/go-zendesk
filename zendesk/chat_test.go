@@ -10,14 +10,15 @@ func TestRedactChatComment(t *testing.T) {
 	client := newTestClient(mockAPI)
 	defer mockAPI.Close()
 
-	req := &RedactChatCommentAttachmentRequest{
-		TicketID:   123,
-		MessageIDs: []string{"abcd-1234-efgh-5678"},
+	req := &RedactChatCommentRequest{
+		TicketID:  123,
+		MessageID: "abcd-1234-efgh-5678",
+		Text:      "Redacted by Go-Zendesk",
 	}
 
-	resp, err := client.RedactChatCommentAttachment(ctx, req)
+	resp, err := client.RedactChatComment(ctx, req)
 	if err != nil {
-		t.Fatalf("Failed to redact chat comment attachment: %s", err)
+		t.Fatalf("Failed to redact chat comment: %s", err)
 	}
 
 	if resp.ChatEvent.ID != 1932802680168 {
