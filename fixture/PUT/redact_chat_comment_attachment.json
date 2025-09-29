@@ -1,0 +1,22 @@
+{
+    "chat_event": {
+        "id": 1932802680168,
+        "type": "ChatStartedEvent",
+        "value": {
+            "chat_id": "2109.10502823.Sjuj2YrBpXwei",
+            "history": [
+                {
+                    "chat_index": 0,
+                    "filename": "redacted.txt",
+                    "type": "ChatFileAttachment"
+                },
+                {
+                    "chat_index": 1,
+                    "filename": "redacted.txt",
+                    "type": "ChatFileAttachment"
+                }
+            ],
+            "visitor_id": "10502823-16EkM3T6VNq7KMd"
+        }
+    }
+}
