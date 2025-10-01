@@ -22,6 +22,8 @@ func TestCreateWebhook(t *testing.T) {
 			Type: "basic_auth",
 		},
 		Endpoint:      "https://example.com/status/200",
+		CustomHeaders: map[string]string{"X-Custom-Header": "value"},
+		Description:   "An example webhook",
 		HTTPMethod:    http.MethodGet,
 		Name:          "Example Webhook",
 		RequestFormat: "json",
