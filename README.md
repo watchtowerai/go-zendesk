@@ -4,11 +4,10 @@
 
 | Key                             | Value                          |
 |---------------------------------|--------------------------------|
-| **TEAM**                        | Team Name                      |
-| **TEAM-MANAGER-EMAIL**          | amit@nightfall.ai                     |
-| **SLACK-DEPLOY-NOTIFY-CHANNEL** | #deploy-notifications-channel  |
-| **SLACK-TEAM-CHANNEL**          | #team-slack-channel            |
-| **TEAM-LINEAR-SLUG**            | DTE                 |
+| **TEAM**                        | Detection                      |
+| **TEAM-MANAGER-EMAIL**          | amit@nightfall.ai              |
+| **SLACK-TEAM-CHANNEL**          | #team-detection                |
+| **TEAM-LINEAR-SLUG**            | DTE                            |
 
 [![Actions Status](https://github.com/nukosuke/go-zendesk/workflows/CI/badge.svg)](https://github.com/nukosuke/go-zendesk/actions)
 [![Build status](https://ci.appveyor.com/api/projects/status/ce4p1mswjkdftv6o/branch/master?svg=true)](https://ci.appveyor.com/project/nukosuke/go-zendesk/branch/master)
