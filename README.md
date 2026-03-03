@@ -1,4 +1,14 @@
 # go-zendesk
+
+## Service Metadata
+
+| Key                             | Value                          |
+|---------------------------------|--------------------------------|
+| **TEAM**                        | Detection                      |
+| **TEAM-MANAGER-EMAIL**          | amit@nightfall.ai              |
+| **SLACK-TEAM-CHANNEL**          | #team-detection                |
+| **TEAM-LINEAR-SLUG**            | DTE                            |
+
 [![Actions Status](https://github.com/nukosuke/go-zendesk/workflows/CI/badge.svg)](https://github.com/nukosuke/go-zendesk/actions)
 [![Build status](https://ci.appveyor.com/api/projects/status/ce4p1mswjkdftv6o/branch/master?svg=true)](https://ci.appveyor.com/project/nukosuke/go-zendesk/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/nukosuke/go-zendesk/badge.svg?branch=master)](https://coveralls.io/github/nukosuke/go-zendesk?branch=master)
